@@ -26,6 +26,11 @@
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
+    // --- THIS IS THE CORRECT, OFFICIAL WAY ---
+    "assetBundlePatterns": [
+      "public/**"
+    ],
+    // ------------------------------------------
     "plugins": [
       "expo-router"
     ],
