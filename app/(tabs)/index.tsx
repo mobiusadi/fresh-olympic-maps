@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import Map from './Map.web'; // We specifically use the web map for this build
+import Map from './Map';
 import ListComponent from './ListComponent';
 import { LocationData } from '../../types';
 
