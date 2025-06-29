@@ -1,13 +1,10 @@
-// app/(tabs)/index.tsx - FINAL VERSION
-
+// app/(tabs)/index.tsx
 import React, { useRef, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import Map from './Map';
-import ListComponent from './ListComponent';
+import Map from '../../components/Map';
+import ListComponent from '../../components/ListComponent';
 import { LocationData } from '../../types';
 
-// This is the new, robust way to load the data.
-// The bundler will find the file and embed it directly into the app.
 const locationsData: LocationData[] = require('../../assets/incidents_data.json');
 
 export default function TabScreen() {
@@ -41,7 +38,7 @@ export default function TabScreen() {
           locationsData={locationsData}
           selectedIncidentId={selectedId}
           onMarkerPress={onMarkerPress}
-          initialRegion={{ latitude: 40, longitude: -30, latitudeDelta: 120 }}
+          initialRegion={{ latitude: 40, longitude: -30 }}
         />
       </View>
       <View style={styles.listContainer}>
