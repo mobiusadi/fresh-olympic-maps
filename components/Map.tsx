@@ -5,7 +5,7 @@ import { GoogleMap, MarkerF, useLoadScript } from '@react-google-maps/api';
 
 const WebMapComponent = React.forwardRef(({ locationsData, selectedIncidentId, onMarkerPress, initialRegion }: any, ref) => {
     const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: process.env.EXPO_PUBLIC_Maps_API_KEY || '',
+        googleMapsApiKey: 'AIzaSyBL2lf_jys31QHv8VcBRD6-q7oFFzkywnk',
     });
 
     const [map, setMap] = useState<google.maps.Map | null>(null);
