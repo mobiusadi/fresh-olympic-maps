@@ -1,60 +1,107 @@
-// components/Map.tsx
-import React, { useEffect, useState, useCallback } from 'react';
-import { Text } from 'react-native';
-import { GoogleMap, MarkerF, useLoadScript } from '@react-google-maps/api';
+// components/Map.tsx - FINAL VERSION (Manual Script Loader)
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
-const WebMapComponent = React.forwardRef(({ locationsData, selectedIncidentId, onMarkerPress, initialRegion }: any, ref) => {
-    const { isLoaded, loadError } = useLoadScript({
-        googleMapsApiKey: "AIzaSyBL2lf_jys31QHv8VcBRD6-q7oFFzkywnk",
+// --- This is our manual script loader ---
+const useScript = (url: string) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<any>(null);
+
+  useEffect(() => {
+    // Check if the script is already on the page
+    if (document.querySelector(`script[src="${url}"]`)) {
+      setIsLoaded(true);
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = url;
+    script.async = true;
+    script.defer = true;
+
+    const onReady = () => setIsLoaded(true);
+    const onError = (e: any) => setError(e);
+
+    script.addEventListener('load', onReady);
+    script.addEventListener('error', onError);
+    document.head.appendChild(script);
+
+    return () => {
+      script.removeEventListener('load', onReady);
+      script.removeEventListener('error', onError);
+    };
+  }, [url]);
+
+  return { isLoaded, error };
+};
+// -----------------------------------------
+
+
+const MapComponent = ({ locationsData }: { locationsData: any[] }) => {
+  const [map, setMap] = useState<any>(null);
+
+  const onMapLoad = (mapInstance: any) => {
+    setMap(mapInstance);
+  };
+
+  useEffect(() => {
+    if (!map || !window.google) return;
+
+    // Create markers
+    locationsData.forEach(location => {
+      new window.google.maps.Marker({
+        position: { lat: location.coordinates.latitude, lng: location.coordinates.longitude },
+        map: map,
+        title: location.location_name,
+      });
     });
 
-    const [map, setMap] = useState<google.maps.Map | null>(null);
+  }, [map, locationsData]);
 
-    const onLoad = useCallback((mapInstance: google.maps.Map) => {
-        setMap(mapInstance);
-        if (ref) {
-            (ref as React.MutableRefObject<any>).current = {
-                panTo: (latLng: google.maps.LatLngLiteral) => mapInstance.panTo(latLng),
-            };
+  if (!window.google) {
+    return <View style={styles.container}><Text>Map script not loaded</Text></View>;
+  }
+
+  return (
+    <div
+      ref={el => {
+        if (el && !map) {
+          const newMap = new window.google.maps.Map(el, {
+            center: { lat: 40, lng: -30 },
+            zoom: 3,
+          });
+          onMapLoad(newMap);
         }
-    }, [ref]);
+      }}
+      style={{ width: '100%', height: '100%' }}
+    />
+  );
+};
 
-    useEffect(() => {
-        if (map && selectedIncidentId !== null) {
-            const location = locationsData.find((l: any) => l.id === selectedIncidentId);
-            if (location) {
-                map.panTo({ lat: location.coordinates.latitude, lng: location.coordinates.longitude });
-                map.setZoom(10);
-            }
-        }
-    }, [selectedIncidentId, map, locationsData]);
 
-    if (loadError) return <Text>Map cannot be loaded.</Text>;
-    if (!isLoaded) return <Text>Loading Map...</Text>;
+export default function MapWrapper() {
+  // This is where you put your key. It's still hardcoded for this test.
+  const apiKey = "AIzaSyBL2lf_jys31QHv8VcBRD6-q7oFFzkywnk"; 
+  
+  const { isLoaded, error } = useScript(
+    `https://maps.googleapis.com/maps/api/js?key=${apiKey}`
+  );
 
-    return (
-        <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '100%' }}
-            center={{ lat: initialRegion.latitude, lng: initialRegion.longitude }}
-            zoom={4}
-            onLoad={onLoad}
-        >
-            {locationsData.map((location: any) => (
-                <MarkerF
-                    key={location.id}
-                    position={{ lat: location.coordinates.latitude, lng: location.coordinates.longitude }}
-                    onClick={() => onMarkerPress(location)}
-                    icon={{
-                        path: google.maps.SymbolPath.CIRCLE,
-                        fillColor: selectedIncidentId === location.id ? '#007AFF' : '#d32f2f',
-                        fillOpacity: 1,
-                        strokeWeight: 0,
-                        scale: 6,
-                    }}
-                />
-            ))}
-        </GoogleMap>
-    );
+  if (error) return <View style={styles.container}><Text>Error loading map script.</Text></View>;
+  if (!isLoaded) return <View style={styles.container}><Text>Loading map script...</Text></View>;
+
+  // This is a placeholder for your real data for now
+  const placeholderData = [{id: 1, coordinates: {latitude: 51.5074, longitude: -0.1278}, location_name: 'London'}];
+
+  return (
+     <MapComponent locationsData={placeholderData} />
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
-
-export default WebMapComponent;
